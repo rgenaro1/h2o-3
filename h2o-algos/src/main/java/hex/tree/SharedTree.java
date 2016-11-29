@@ -293,6 +293,8 @@ public abstract class SharedTree<M extends SharedTreeModel<M,P,O>, P extends Sha
         _improvPerVar = new float[_ncols];
         _rand = RandomUtils.getRNG(_parms._seed);
 
+        Log.info("@@@@@@ algo seed is "+Double.toString(_parms._seed));
+
         initializeModelSpecifics();
         resumeFromCheckpoint(SharedTree.this);
         scoreAndBuildTrees(doOOBScoring());
