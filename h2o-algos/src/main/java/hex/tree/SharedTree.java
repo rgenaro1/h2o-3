@@ -347,6 +347,7 @@ public abstract class SharedTree<M extends SharedTreeModel<M,P,O>, P extends Sha
      */
     protected final void scoreAndBuildTrees(boolean oob) {
       for( int tid=0; tid< _ntrees; tid++) {
+        double runtime = System.currentTimeMillis();
         // During first iteration model contains 0 trees, then 1-tree, ...
         boolean scored = doScoringAndSaveModel(false, oob, _parms._build_tree_one_node);
         if (scored && ScoreKeeper.stopEarly(_model._output.scoreKeepers(), _parms._stopping_rounds, _nclass > 1, _parms._stopping_metric, _parms._stopping_tolerance, "model's last", true)) {
@@ -366,6 +367,7 @@ public abstract class SharedTree<M extends SharedTreeModel<M,P,O>, P extends Sha
           break; // If timed out, do the final scoring
         }
         if (stop_requested()) throw new Job.JobCancelledException();
+        Log.info("******  time taken to build each tree in ms: "+Double.toString(System.currentTimeMillis()-runtime));
       }
       // Final scoring (skip if job was cancelled)
       doScoringAndSaveModel(true, oob, _parms._build_tree_one_node);
