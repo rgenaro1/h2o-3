@@ -6,7 +6,7 @@ source("../../scripts/h2o-r-test-setup.R")
 # for GLRM timing test.
 test.RdocGBM.golden <- function() {
 
-    num_runs = 200  # no need to be hugh, it happens about one run in six, I was told
+    num_runs = 50  # no need to be hugh, it happens about one run in six, I was told
     ausPath <- locate("smalldata/extdata/australia.csv")
     australia.hex <- h2o.uploadFile(path = ausPath)
     independent<- c("premax", "salmax","minairtemp", "maxairtemp", "maxsst", "maxsoilmoist", "Max_czcs")
