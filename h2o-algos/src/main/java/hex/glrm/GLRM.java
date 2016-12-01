@@ -247,13 +247,13 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
       if (vi.isNumeric()) {
         if (!lossi.isForNumeric())
           error("_loss_by_col", "Loss function " + lossi + " cannot be applied to numeric column " + i);
+      }  else if (vi.isBinary()) {
+        // Allow numeric loss functions, multi-loss on binary columns too; but not the other way round!
+        if (!lossi.isForBinary() && !lossi.isForNumeric() && !lossi.isForCategorical())
+          error("_loss_by_col", "Loss function " + lossi + " cannot be applied to binary column " + i);
       } else if (vi.isCategorical()) {
         if (!lossi.isForCategorical())
           error("_loss_by_col", "Loss function " + lossi + " cannot be applied to categorical column " + i);
-      } else if (vi.isBinary()) {
-        // Allow numeric loss functions on binary columns too; but not the other way round!
-        if (!lossi.isForBinary() && !lossi.isForNumeric())
-          error("_loss_by_col", "Loss function " + lossi + " cannot be applied to binary column " + i);
       }
 
       // For "Periodic" loss function supply the period. We currently have no support for different periods for
