@@ -118,6 +118,11 @@ public enum GlrmLoss {
       assert a == 0 || a == 1 : "Logistic loss should be applied to binary features only";
       return Math.log(1 + Math.exp((1 - 2*a)*u));
     }
+
+    public double mloss(double[] u, int a, int u_len) {
+      return loss(u[0], (double) a);
+    }
+
     @Override public double lgrad(double u, double a) {
       double s = 1 - 2*a;
       return s/(1 + Math.exp(s*u));

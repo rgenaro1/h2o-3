@@ -604,6 +604,8 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
                              false, false, false, /* weights */ false, /* offset */ false, /* fold */ false);
         DKV.put(tinfo._key, tinfo);
 
+
+
         // Save training frame adaptation information for use in scoring later
         model._output._normSub = tinfo._normSub == null ? new double[tinfo._nums] : tinfo._normSub;
         if (tinfo._normMul == null) {
@@ -616,6 +618,10 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
         model._output._ncats = tinfo._cats;
         model._output._catOffsets = tinfo._catOffsets;
         model._output._names_expanded = tinfo.coefNames();
+
+        // need to prevent binary data column being expanded into two when the loss function is logistic here
+        correctForLogistic(tinfo);
+        model._output._catOffsets = tinfo._catOffsets;
 
         // Save loss function for each column in adapted frame order
         assert _lossFunc != null && _lossFunc.length == _train.numCols();
@@ -798,6 +804,49 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
           }
         }
         Scope.untrack(keep);
+      }
+    }
+
+    /*
+    This funciton will prevent binary columns with logistic loss functions specified from being expanded into
+    two columns.  If no logistic loss is specified, no action will be performed.
+     */
+    private void correctForLogistic(DataInfo tinfo) {
+      if (_parms._loss_by_col != null) {
+        correctAllColumns(_parms._loss_by_col, tinfo);
+      } else if (_parms._multi_loss.equals("Logistic")) {
+        GlrmLoss[] loss_by_col = new GlrmLoss[tinfo._permutation.length];
+        Arrays.fill(loss_by_col, 0);
+        correctAllColumns(loss_by_col, tinfo);
+      }
+    }
+
+    private void correctAllColumns(GlrmLoss[] loss_by_col, DataInfo tinfo) {
+      int[] catOffsets = new int[tinfo._catOffsets.length];
+
+      boolean changed = false;  // no change is detected here yet.
+
+      for (int index = 0; index < tinfo._cats; index++) {
+        if (loss_by_col[tinfo._permutation[index]].isForBinary()) {
+          // change the info for that column in tinfo for Logistic loss only
+          changed = true;   // encounter change.  Need to re-assign catOffsets and numOffset at the end
+          catOffsets[index+1] = 1;  // suppress column expansion here
+        } else
+          catOffsets[index+1] = tinfo._catOffsets[index+1]-tinfo._catOffsets[index];
+      }
+
+      if (changed) {  // only perform tinfo info update if anything has changed.
+        int sum = 0;
+        for (int index = 1; index < tinfo._catOffsets.length; index++) {
+          sum += catOffsets[index];   // update tinof._catOffsets[]
+          tinfo._catOffsets[index] = sum;
+        }
+
+        for (int index = 0; index < tinfo._numOffsets.length; index++) {
+          tinfo._numOffsets[index] = sum++;   // update tinfo._numOffests[]
+        }
+
+        _ncolY = _train == null? -1 : tinfo._numOffsets[tinfo._numOffsets.length-1];
       }
     }
 
@@ -1474,9 +1523,14 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
         // Categorical columns
         for (int j = 0; j < _ncats; j++) {
           int catColJLevel = _yt._numLevels[j];
+          if ((_yt._catOffsets[j+1]-_yt._catOffsets[j]) == 1) {
+            catColJLevel = 1;
+          }
+
           double a = cs[j].atd(row);
           if (Double.isNaN(a)) continue;
 
+          Arrays.fill(xy, 0, catColJLevel, 0);  // need to refresh before next round
           // Calculate x_i * Y_j where Y_j is sub-matrix corresponding to categorical col j
           for (int level = 0; level < catColJLevel; level++) {
             for (int k = 0; k < _ncolX; k++) {
