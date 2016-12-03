@@ -1,6 +1,5 @@
 package hex.tree.drf;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import hex.genmodel.utils.DistributionFamily;
 import hex.ModelCategory;
 import hex.tree.*;
@@ -14,7 +13,6 @@ import water.fvec.C0DChunk;
 import water.fvec.Chunk;
 import water.fvec.Frame;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static hex.genmodel.GenModel.getPrediction;
 import static hex.tree.drf.TreeMeasuresCollector.asSSE;
@@ -207,7 +205,7 @@ public class DRF extends SharedTree<hex.tree.drf.DRFModel, hex.tree.drf.DRFModel
         DTree tree = ktrees[k];
         if( tree == null ) continue;
         int leaf = leafs[k] = tree.len();
-        double s = 0;
+        double sum=0;
         for( int nid=0; nid<leaf; nid++ ) {
           if( tree.node(nid) instanceof DecidedNode ) {
             DecidedNode dn = tree.decided(nid);
@@ -224,15 +222,17 @@ public class DRF extends SharedTree<hex.tree.drf.DRFModel, hex.tree.drf.DRFModel
                       tree.node(cnid) instanceof UndecidedNode || // Or chopped off for depth
                       (tree.node(cnid) instanceof DecidedNode &&  // Or not possible to split
                               ((DecidedNode)tree.node(cnid))._split ==null) ) {
+                double s = (i == 0 ? dn._split._n0 : dn._split._n1);
                 LeafNode ln = new LeafNode(tree,nid);
                 ln._pred = (float)dn.pred(i);  // Set prediction into the leaf
                 dn._nids[i] = ln.nid(); // Mark a leaf here
-                s += (i == 0 ? dn._split._n0 : dn._split._n1);
                 Log.info(dn._nids[i] + " " + s);
+                sum+=s;
               }
             }
           }
         }
+        Log.info("sum: " + sum);
       } // -- k-trees are done
     }
 

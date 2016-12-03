@@ -14,6 +14,7 @@ class SharedTreeNode {
   private final SharedTreeNode parent;
   private final int subgraphNumber;
   private final int nodeNumber;
+  private double weight;
   private final int depth;
   private int colId;
   private String colName;
@@ -40,11 +41,12 @@ class SharedTreeNode {
    * @param n Node number
    * @param d Node depth within the tree
    */
-  SharedTreeNode(SharedTreeNode p, int sn, int n, int d) {
+  SharedTreeNode(SharedTreeNode p, int sn, int n, int d, double w) {
     parent = p;
     subgraphNumber = sn;
     nodeNumber = n;
     depth = d;
+    weight = w;
   }
 
   public int getDepth() {
@@ -53,6 +55,14 @@ class SharedTreeNode {
 
   private int getNodeNumber() {
     return nodeNumber;
+  }
+
+  private double getNodeWeight() {
+    return weight;
+  }
+
+  void setWeight(double w) {
+    weight = w;
   }
 
   void setCol(int v1, String v2) {
@@ -219,6 +229,7 @@ class SharedTreeNode {
 
   public void print() {
     System.out.println("        Node " + nodeNumber);
+    System.out.println("            weight:       " + weight);
     System.out.println("            depth:       " + depth);
     System.out.println("            colId:       " + colId);
     System.out.println("            colName:     " + ((colName != null) ? colName : ""));
@@ -274,6 +285,7 @@ class SharedTreeNode {
 
     if (detail) {
       os.print("\\n\\nN" + getNodeNumber());
+      os.print("\\n\\nW" + getNodeWeight());
       if (naVsRest) {
         os.print("\\n" + "nasVsRest");
       }

@@ -134,7 +134,7 @@ public class DTree extends Iced {
     final byte _equal;          // Split is 0: <, 2: == with group split (<= 32 levels), 3: == with group split (> 32 levels)
     final double _se;           // Squared error without a split
     final double _se0, _se1;    // Squared error of each subsplit
-    final double _n0,  _n1;     // (Weighted) Rows in each final split
+    final public double _n0,  _n1;     // (Weighted) Rows in each final split
     final double _p0,  _p1;     // Predicted value for each split
 
     public Split(int col, int bin, DHistogram.NASplitDir nasplit, IcedBitSet bs, byte equal, double se, double se0, double se1, double n0, double n1, double p0, double p1 ) {
@@ -627,6 +627,7 @@ public class DTree extends Iced {
       // 1B node type + flags, 2B colId, 4B split val/small group or (2B offset + 2B size) + large group
       int res = _split._equal == 3 ? 7 + _split._bs.numBytes() : 7;
 
+      res+=4; //weight
       // NA handling correction
       res++; //1 byte for NA split dir
       if (_split._nasplit == DHistogram.NASplitDir.NAvsREST)
@@ -655,6 +656,7 @@ public class DTree extends Iced {
       int pos = ab.position();
       if( _nodeType == 0 ) size(); // Sets _nodeType & _size both
       ab.put1(_nodeType);          // Includes left-child skip-size bits
+      ab.put4f((float)(_split._n0 + _split._n1));
       assert _split != null;    // Not a broken root non-decision?
       assert _split._col >= 0;
       ab.put2((short)_split._col);
@@ -696,7 +698,9 @@ public class DTree extends Iced {
     }
     // Insert just the predictions: a single byte/short if we are predicting a
     // single class, or else the full distribution.
-    @Override protected AutoBuffer compress(AutoBuffer ab) { assert !Double.isNaN(_pred); return ab.put4f(_pred); }
+    @Override protected AutoBuffer compress(AutoBuffer ab) {
+      assert !Double.isNaN(_pred); return ab.put4f(_pred);
+    }
     @Override protected int size() { return 4; }
     public final double pred() { return _pred; }
   }
