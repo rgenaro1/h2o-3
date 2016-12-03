@@ -55,8 +55,9 @@ public abstract class SharedTreeMojoModel extends MojoModel {
         int level = 0;
         while (true) {
             int nodeType = ab.get1U();
-            //float weight = ab.get4f();
-            ab.skip(4); //unused weight - no need to assign
+            //float weightL = ab.get4f();
+            //float weightR = ab.get4f();
+            ab.skip(4+4); //unused weight - no need to assign
             int colId = ab.get2();
             if (colId == 65535) return ab.get4f();
             int naSplitDir = ab.get1U();
@@ -137,14 +138,15 @@ public abstract class SharedTreeMojoModel extends MojoModel {
 
     private void computeTreeGraph(SharedTreeSubgraph sg, SharedTreeNode node, byte[] tree, ByteBufferWrapper ab, int nclasses) {
         int nodeType = ab.get1U();
-        float weight = ab.get4f();
+        float weightL = ab.get4f();
+        float weightR = ab.get4f();
         int colId = ab.get2();
         if (colId == 65535) {
             float leafValue = ab.get4f();
             node.setLeafValue(leafValue);
             return;
         }
-        node.setWeight(weight);
+        node.setWeight(weightL,weightR);
         String colName = getNames()[colId];
         node.setCol(colId, colName);
 

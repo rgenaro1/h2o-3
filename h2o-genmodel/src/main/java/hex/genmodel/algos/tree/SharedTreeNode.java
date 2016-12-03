@@ -14,7 +14,8 @@ class SharedTreeNode {
   private final SharedTreeNode parent;
   private final int subgraphNumber;
   private final int nodeNumber;
-  private double weight;
+  private float weightL;
+  private float weightR;
   private final int depth;
   private int colId;
   private String colName;
@@ -41,12 +42,13 @@ class SharedTreeNode {
    * @param n Node number
    * @param d Node depth within the tree
    */
-  SharedTreeNode(SharedTreeNode p, int sn, int n, int d, double w) {
+  SharedTreeNode(SharedTreeNode p, int sn, int n, int d, float wL, float wR) {
     parent = p;
     subgraphNumber = sn;
     nodeNumber = n;
     depth = d;
-    weight = w;
+    weightL = wL;
+    weightR = wR;
   }
 
   public int getDepth() {
@@ -57,12 +59,17 @@ class SharedTreeNode {
     return nodeNumber;
   }
 
-  private double getNodeWeight() {
-    return weight;
+  float getNodeWeightL() {
+    return weightL;
   }
 
-  void setWeight(double w) {
-    weight = w;
+  float getNodeWeightR() {
+    return weightR;
+  }
+
+  void setWeight(float wL, float wR) {
+    weightL = wL;
+    weightR = wR;
   }
 
   void setCol(int v1, String v2) {
@@ -229,7 +236,7 @@ class SharedTreeNode {
 
   public void print() {
     System.out.println("        Node " + nodeNumber);
-    System.out.println("            weight:       " + weight);
+    System.out.println("            weight(L/R):       " + weightL + " / " + weightR);
     System.out.println("            depth:       " + depth);
     System.out.println("            colId:       " + colId);
     System.out.println("            colName:     " + ((colName != null) ? colName : ""));
@@ -285,7 +292,12 @@ class SharedTreeNode {
 
     if (detail) {
       os.print("\\n\\nN" + getNodeNumber());
-      os.print("\\n\\nW" + getNodeWeight());
+      if (getNodeWeightL()==0)
+        os.print("\\n\\nW: " + getNodeWeightR());
+      else if (getNodeWeightR()==0)
+        os.print("\\n\\nW: " + getNodeWeightL());
+      else
+        os.print("\\n\\nW: " + (getNodeWeightL() + getNodeWeightR()));
       if (naVsRest) {
         os.print("\\n" + "nasVsRest");
       }

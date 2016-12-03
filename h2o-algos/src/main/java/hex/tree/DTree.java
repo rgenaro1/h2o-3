@@ -627,7 +627,7 @@ public class DTree extends Iced {
       // 1B node type + flags, 2B colId, 4B split val/small group or (2B offset + 2B size) + large group
       int res = _split._equal == 3 ? 7 + _split._bs.numBytes() : 7;
 
-      res+=4; //weight
+      res+=4+4; //L/R weights
       // NA handling correction
       res++; //1 byte for NA split dir
       if (_split._nasplit == DHistogram.NASplitDir.NAvsREST)
@@ -656,7 +656,8 @@ public class DTree extends Iced {
       int pos = ab.position();
       if( _nodeType == 0 ) size(); // Sets _nodeType & _size both
       ab.put1(_nodeType);          // Includes left-child skip-size bits
-      ab.put4f((float)(_split._n0 + _split._n1));
+      ab.put4f((float)(_split._n0));
+      ab.put4f((float)(_split._n1));
       assert _split != null;    // Not a broken root non-decision?
       assert _split._col >= 0;
       ab.put2((short)_split._col);

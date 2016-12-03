@@ -35,7 +35,7 @@ public abstract class TreeVisitor<T extends Exception> {
 
   public final void visit() throws T {
     int nodeType = _ts.get1();
-    float weight = _ts.get4f();
+    _ts.skip(4+4);
     int col = _ts.get2();
     if( col==65535 ) { leaf2(nodeType); return; }
     int equal = (nodeType&12) >> 2;

@@ -571,7 +571,7 @@ public class GBM extends SharedTree<GBMModel,GBMModel.GBMParameters,GBMModel.GBM
         if (tree == null) continue;
         int leaf = tree.len();
         leaves[k] = leaf; //record the size of the tree before splitting the bottom nodes as the starting index for the leaf node indices
-        double sum=0;
+//        double sum=0;
         for (int nid = 0; nid < leaf; nid++) {
           if (tree.node(nid) instanceof DecidedNode) {
             DecidedNode dn = tree.decided(nid);
@@ -586,15 +586,15 @@ public class GBM extends SharedTree<GBMModel,GBMModel.GBMParameters,GBMModel.GBM
                       tree.node(cnid) instanceof UndecidedNode || // Or chopped off for depth
                       (tree.node(cnid) instanceof DecidedNode &&  // Or not possible to split
                               ((DecidedNode) tree.node(cnid))._split == null)) {
-                double s = (i == 0 ? dn._split._n0 : dn._split._n1);
                 dn._nids[i] = new LeafNode(tree, nid).nid(); // Mark a leaf here
-                Log.info(dn._nids[i] + " " + s);
-                sum+=s;
+//                double s = (i == 0 ? dn._split._n0 : dn._split._n1);
+//                Log.info(dn._nids[i] + " " + s);
+//                sum+=s;
               }
             }
           }
         }
-        Log.info("sum: " + sum);
+//        Log.info("sum: " + sum);
       } // -- k-trees are done
     }
 
