@@ -125,8 +125,15 @@ public enum GlrmLoss {
 
     @Override public double lgrad(double u, double a) {
       double s = 1 - 2*a;
-      return s/(1 + Math.exp(s*u));
+      return s*Math.exp(s*u)/(1 + Math.exp(s*u));
     }
+
+    @Override
+    public double[] mlgrad(double[] u, int a, double[] prod, int u_len) {
+      prod[0] = lgrad(u[0], a);
+      return prod;
+    }
+
     @Override public double impute(double u) {
       return u > 0? 1 : 0;
     }
