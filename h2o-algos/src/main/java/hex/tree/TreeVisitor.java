@@ -35,7 +35,6 @@ public abstract class TreeVisitor<T extends Exception> {
 
   public final void visit() throws T {
     int nodeType = _ts.get1();
-    _ts.skip(4+4);
     int col = _ts.get2();
     if( col==65535 ) { leaf2(nodeType); return; }
     int equal = (nodeType&12) >> 2;
@@ -51,6 +50,8 @@ public abstract class TreeVisitor<T extends Exception> {
         else _gcmp.fill3(_ct._bits, _ts);
       }
     }
+    float weightL = _ts.get4f();
+    float weightR = _ts.get4f();
 
     // Compute the amount to skip.
     int lmask =  nodeType & 0x33;

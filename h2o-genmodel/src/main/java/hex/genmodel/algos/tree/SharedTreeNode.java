@@ -49,6 +49,7 @@ class SharedTreeNode {
     depth = d;
     weightL = wL;
     weightR = wR;
+    System.out.println("Initialized weights to " + wL + " " + wR);
   }
 
   public int getDepth() {
@@ -70,6 +71,7 @@ class SharedTreeNode {
   void setWeight(float wL, float wR) {
     weightL = wL;
     weightR = wR;
+    System.out.println("Setting weights to " + wL + " " + wR);
   }
 
   void setCol(int v1, String v2) {

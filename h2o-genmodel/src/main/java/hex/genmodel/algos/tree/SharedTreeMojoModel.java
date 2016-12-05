@@ -55,9 +55,6 @@ public abstract class SharedTreeMojoModel extends MojoModel {
         int level = 0;
         while (true) {
             int nodeType = ab.get1U();
-            //float weightL = ab.get4f();
-            //float weightR = ab.get4f();
-            ab.skip(4+4); //unused weight - no need to assign
             int colId = ab.get2();
             if (colId == 65535) return ab.get4f();
             int naSplitDir = ab.get1U();
@@ -82,6 +79,8 @@ public abstract class SharedTreeMojoModel extends MojoModel {
                         bs.fill3(tree, ab);
                 }
             }
+            float weightL = ab.get4f();
+            float weightR = ab.get4f();
 
             double d = row[colId];
             if (Double.isNaN(d)? !leftward : !naVsRest && (equal == 0? d >= splitVal : bs.contains((int)d))) {
