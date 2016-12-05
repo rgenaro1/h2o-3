@@ -5,13 +5,11 @@ import jsr166y.CountedCompleter;
 import water.*;
 import water.fvec.*;
 import water.util.ArrayUtils;
+import water.util.IcedBitSet;
+import water.util.VecUtils;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import water.util.IcedBitSet;
-import water.util.Log;
-import water.util.VecUtils;
 
 /**
  * Created by tomas on 10/28/16.
@@ -348,11 +346,6 @@ public class ScoreBuildHistogram2 extends ScoreBuildHistogram {
       for(DHistogram dh:ary) {
         if(dh == null) continue;
         dh.reducePrecision();
-        double w=0;
-        for (int i=0;i<dh._nbin;++i) {
-          w+=dh.w(i);
-        }
-        Log.info("count: " + w);
       }
   }
 }
