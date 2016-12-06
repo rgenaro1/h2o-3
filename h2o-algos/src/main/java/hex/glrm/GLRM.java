@@ -252,6 +252,15 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
         // Allow numeric loss functions, multi-loss on binary columns too; but not the other way round!
         if (!lossi.isForBinary() && !lossi.isForNumeric() && !lossi.isForCategorical())
           error("_loss_by_col", "Loss function " + lossi + " cannot be applied to binary column " + i);
+        // make sure we are not calling init mode SVD for categorical binary columns with binary loss
+        if (vi.isCategorical() && lossi.isForBinary()) {
+          if (_parms._init == GlrmInitialization.SVD) { // cannot use SVD as init mode with categorical binary column
+            String msg = "Cannot use init mode SVD when using binary loss function with categorical binary columns.  " +
+                    "If you must use SVD init mode for your binary loss function, go back and change your " +
+                    "categorical binary columns using binary loss functions to numerics columns.";
+            error("_train", msg);
+          }
+        }
       } else if (vi.isCategorical()) {
         if (!lossi.isForCategorical())
           error("_loss_by_col", "Loss function " + lossi + " cannot be applied to categorical column " + i);
@@ -614,6 +623,7 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
 
         // need to prevent binary data column being expanded into two when the loss function is logistic here
         correctForLogistic(tinfo, numCatColumns);
+        if (error_count() > 0) throw new IllegalArgumentException("Found validation errors: " + validationErrors());
         model._output._catOffsets = tinfo._catOffsets;
         model._output._names_expanded = tinfo.coefNames();
 
