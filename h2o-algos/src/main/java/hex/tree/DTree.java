@@ -507,12 +507,19 @@ public class DTree extends Iced {
         if (_pid != -1) {
           assert(Math.abs(sum - (_s._n0 + _s._n1)) < 1e-5*sum);
           Split parSplit = _tree.decided(_pid)._split;
-          if (parSplit !=null)
-            assert ((Math.abs(sum - parSplit._n0) < 1e-5*sum) ^ (Math.abs(sum - parSplit._n1) < 1e-5*sum)) :
+          if (parSplit !=null) {
+            boolean ok = ((Math.abs(sum - parSplit._n0) < 1e-5*sum) || (Math.abs(sum - parSplit._n1) < 1e-5*sum));
+            if (!ok) {
+              System.err.println("internal error");
+            }
+            assert ok :
                     "\nInvalid split: Parent node with " + (parSplit._n0 + parSplit._n1) + " observations got split into two child nodes with "
-                   + parSplit._n0 + " and " + parSplit._n1 + " observations each but this node isn't either of them, but has " + sum + " observations."
-                    + "\nParent split:\n" + parSplit.toString()
-                    + "\nThis node split:\n" + _s.toString();
+                            + parSplit._n0 + " and " + parSplit._n1 + " observations each but this node isn't either of them, but has " + sum + " observations."
+                            + "\nParent node " + _pid + " split:\n" + parSplit.toString()
+                            + "\nThis node " + _nid + " split:\n" + _s.toString()
+                            + "\nParent node:" + _tree.decided(_pid).toString()
+                            + "\nHisto: " + _hs[_col].toString();
+          }
         }
       }
     }
@@ -765,7 +772,7 @@ public class DTree extends Iced {
       idxs = MemoryManager.malloc4(nbins+1); // Reverse index
       for( int i=0; i<nbins+1; i++ ) idxs[i] = i;
       final double[] avgs = MemoryManager.malloc8d(nbins+1);
-      for( int i=0; i<nbins; i++ ) avgs[i] = hs.w(i)==0 ? 0 : hs.wY(i) / hs.w(i); // Average response
+      for( int i=0; i<nbins; i++ ) avgs[i] = hs.w(i)==0 ? -Double.MAX_VALUE : hs.wY(i) / hs.w(i); // Average response
       avgs[nbins] = Double.MAX_VALUE;
       ArrayUtils.sort(idxs, avgs);
       // Fill with sorted data.  Makes a copy, so the original data remains in
@@ -983,6 +990,11 @@ public class DTree extends Iced {
     // if still undecided (e.g., if there are no NAs in training), pick a good default direction for NAs in test time
     if (nasplit == DHistogram.NASplitDir.None) {
       nasplit = nLeft > nRight ? DHistogram.NASplitDir.Left : DHistogram.NASplitDir.Right;
+    }
+    if (nRight == 7958) {
+      for (int i=0;i<vals.length/3;++i) {
+        System.out.println(vals[3*i] + " " + vals[3*i+1] + " " + vals[3*i+2] + " -> avg response: " + vals[3*i+1]/vals[3*i]);
+      }
     }
     return new Split(col,best,nasplit,bs,equal,seBefore,best_seL, best_seR, nLeft, nRight, predLeft / nLeft, predRight / nRight);
   }
