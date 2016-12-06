@@ -119,7 +119,11 @@ public enum GlrmLoss {
       return Math.log(1 + Math.exp((1 - 2*a)*u));
     }
 
-    public double mloss(double[] u, int a, int u_len) {
+    @Override public double mloss(double[] u, int a) {
+      return loss(u[0], (double) a);
+    }
+
+    @Override public double mloss(double[] u, int a, int u_len) {
       return loss(u[0], (double) a);
     }
 
@@ -134,9 +138,15 @@ public enum GlrmLoss {
       return prod;
     }
 
+    @Override public double[] mlgrad(double[] u, int a) {
+      return mlgrad(u, a, new double[1], 1);
+    }
+
     @Override public double impute(double u) {
       return u > 0? 1 : 0;
     }
+
+    @Override public int mimpute(double[] u) { return ArrayUtils.maxIndex(u); }
   },
 
   Hinge {
@@ -154,6 +164,10 @@ public enum GlrmLoss {
     }
     @Override public double impute(double u) {
       return u > 0? 1 : 0;
+    }
+
+    @Override public int mimpute(double[] u) {
+      return ArrayUtils.maxIndex(u);
     }
   },
 

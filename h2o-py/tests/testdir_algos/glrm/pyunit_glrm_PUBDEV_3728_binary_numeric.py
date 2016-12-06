@@ -13,8 +13,8 @@ def glrm_pubdev_3728_arrest():
   prostateF = h2o.upload_file(pyunit_utils.locate("smalldata/prostate/prostate_cat.csv"))
 
   loss_all = ["Logistic", "Quadratic", "Categorical", "Categorical", "Logistic", "Quadratic", "Quadratic", "Quadratic"]
-  glrm_h2o = H2OGeneralizedLowRankEstimator(k=5, loss_by_col=loss_all)
-  glrm_h2o.train(x=prostateF.names, training_frame=prostateF)
+  glrm_h2o = H2OGeneralizedLowRankEstimator(k=5, loss_by_col=loss_all, recover_svd=True)
+  glrm_h2o.train(x=prostateF.names, training_frame=prostateF, validation_frame=prostateF)
   glrm_h2o.show()
 
 

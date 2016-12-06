@@ -713,7 +713,13 @@ public class DataInfo extends Keyed<DataInfo> {
         int jj = getCategoricalId(i, j);
         if(jj < 0)
           continue;
-        res[k++] = _adaptedFrame._names[i] + "." + vecs[i].domain()[j];
+
+        if ((_catOffsets[i+1]-_catOffsets[i]) == 1) {
+          res[k++] = _adaptedFrame._names[i];
+          break;  // go to next column i.  Binary column not expanded here.
+        } else
+          res[k++] = _adaptedFrame._names[i] + "." + vecs[i].domain()[j];
+
       }
       if (_catMissing[i] && getCategoricalId(i, _catNAFill[i]) >=0)
         res[k++] = _adaptedFrame._names[i] + ".missing(NA)";
