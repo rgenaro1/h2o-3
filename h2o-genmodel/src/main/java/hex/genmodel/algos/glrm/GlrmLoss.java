@@ -106,11 +106,11 @@ public enum GlrmLoss {
 
 
   //--------------------------------------------------------------------------------------------------------------------
-  // Loss functions for binary features
+  // Loss functions for binary features read in as categorical or numeric
   //--------------------------------------------------------------------------------------------------------------------
 
   Logistic {
-    @Override public boolean isForNumeric() { return false; }
+    @Override public boolean isForNumeric() { return true; }
     @Override public boolean isForCategorical() { return false; }
     @Override public boolean isForBinary() { return true; }
 
@@ -146,7 +146,9 @@ public enum GlrmLoss {
       return u > 0? 1 : 0;
     }
 
-    @Override public int mimpute(double[] u) { return ArrayUtils.maxIndex(u); }
+    @Override public int mimpute(double[] u) {
+      return (int) impute(u[0]);
+    }
   },
 
   Hinge {

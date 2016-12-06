@@ -244,7 +244,8 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
     for (int i = 0; i < _ncolA; i++) {
       Vec vi = _train.vec(i);
       GlrmLoss lossi = _lossFunc[i];
-      if (vi.isNumeric()) {
+        // take care of pure numeric columns.  Binary numeric columns has isBinary() = true
+      if (vi.isNumeric() && !vi.isBinary()) {
         if (!lossi.isForNumeric())
           error("_loss_by_col", "Loss function " + lossi + " cannot be applied to numeric column " + i);
       }  else if (vi.isBinary()) {
@@ -604,7 +605,17 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
                              false, false, false, /* weights */ false, /* offset */ false, /* fold */ false);
         DKV.put(tinfo._key, tinfo);
 
+        model._output._permutation = tinfo._permutation;
+        model._output._nnums = tinfo._nums;
+        model._output._ncats = tinfo._cats;
+        model._output._catOffsets = tinfo._catOffsets;
+        int[] numLevels = tinfo._adaptedFrame.cardinality();
+        int[] numCatColumns = tinfo._adaptedFrame.cardinality();
 
+        // need to prevent binary data column being expanded into two when the loss function is logistic here
+        correctForLogistic(tinfo, numCatColumns);
+        model._output._catOffsets = tinfo._catOffsets;
+        model._output._names_expanded = tinfo.coefNames();
 
         // Save training frame adaptation information for use in scoring later
         model._output._normSub = tinfo._normSub == null ? new double[tinfo._nums] : tinfo._normSub;
@@ -613,18 +624,6 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
           Arrays.fill(model._output._normMul, 1.0);
         } else
           model._output._normMul = tinfo._normMul;
-        model._output._permutation = tinfo._permutation;
-        model._output._nnums = tinfo._nums;
-        model._output._ncats = tinfo._cats;
-        model._output._catOffsets = tinfo._catOffsets;
-//        model._output._names_expanded = tinfo.coefNames();
-        int[] numLevels = tinfo._adaptedFrame.cardinality();
-        int[] numCatColumns = tinfo._adaptedFrame.cardinality();
-
-        // need to prevent binary data column being expanded into two when the loss function is logistic here
-        correctForLogistic(tinfo, numCatColumns);
-        model._output._catOffsets = tinfo._catOffsets;
-        model._output._names_expanded = tinfo.coefNames();
 
         // Save loss function for each column in adapted frame order
         assert _lossFunc != null && _lossFunc.length == _train.numCols();
@@ -812,8 +811,11 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
     }
 
     /*
-    This funciton will prevent binary columns with logistic loss functions specified from being expanded into
+    This funciton will
+    1. prevent binary columns with logistic loss functions specified from being expanded into
     two columns.  If no logistic loss is specified, no action will be performed.
+    2. for numeric columns using logistic loss, it will prevent it from being transformed to say zero mean
+    and unit variance columns.
      */
     private void correctForLogistic(DataInfo tinfo, int[] numCatColumns) {
       if (_parms._loss_by_col != null) {
@@ -830,7 +832,7 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
 
       boolean changed = false;  // no change is detected here yet.
 
-      for (int index = 0; index < tinfo._cats; index++) {
+      for (int index = 0; index < tinfo._cats; index++) { // change for categorical columns only
         if (loss_by_col[tinfo._permutation[index]].isForBinary()) {
           // change the info for that column in tinfo for Logistic loss only
           changed = true;   // encounter change.  Need to re-assign catOffsets and numOffset at the end
@@ -852,6 +854,16 @@ public class GLRM extends ModelBuilder<GLRMModel, GLRMModel.GLRMParameters, GLRM
         }
 
         _ncolY = _train == null? -1 : tinfo._numOffsets[tinfo._numOffsets.length-1];
+      }
+
+      for (int index = 0; index < tinfo._nums; index++) {
+        if (loss_by_col[tinfo._permutation[index+tinfo._cats]].isForBinary()) { // binary loss used on numeric columns
+          if (tinfo._normMul != null)
+            tinfo._normMul[index] = 1;
+
+          if (tinfo._normSub != null)
+            tinfo._normSub[index] = 0;
+        }
       }
     }
 
