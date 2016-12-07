@@ -7,9 +7,6 @@ test.glrm.pubdev.3728 <- function() {
   prostate.hex <- h2o.uploadFile(locate("smalldata/prostate/prostate_cat.csv"), destination_frame= "prostate.hex",
   na.strings = rep("NA", 8))
   loss_all <- c("Logistic", "Quadratic", "Categorical", "Categorical", "Logistic", "Quadratic", "Quadratic", "Quadratic")
-
-  browser()
-
   # Boolean loss does not work on categorical binary columns
   h2o.glrm(training_frame = prostate.hex, k = 5, loss_by_col = loss_all)
 
